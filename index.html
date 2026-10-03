@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Rede Local</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .device-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 18px;
+        }
+
+        .device-info p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-online {
+            background-color: #d1fae5;
+            color: var(--success);
+        }
+
+        .status-offline {
+            background-color: #fee2e2;
+            color: var(--danger);
+        }
+
+        .card-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-toggle {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-on {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-off {
+            background-color: var(--success);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Controlo de Dispositivos de Rede</h1>
+            <p id="network-info">A detetar rede local...</p>
+        </div>
+        <button class="btn" onclick="scanNetwork()">Procurar Dispositivos</button>
+    </header>
+
+    <div class="grid" id="devices-grid">
+        <!-- Os dispositivos serão inseridos aqui pelo JavaScript -->
+    </div>
+</div>
+
+<script>
+    // Lista simulada de dispositivos na rede local
+    let devices = [
+        { id: 1, name: "Smart TV Sala", ip: "192.168.1.50", mac: "00:1A:2B:3C:4D:5E", online: true },
+        { id: 2, name: "Computador Escritório", ip: "192.168.1.65", mac: "1A:2B:3C:4D:5E:6F", online: true },
+        { id: 3, name: "Lâmpada Inteligente", ip: "192.168.1.102", mac: "2B:3C:4D:5E:6F:7A", online: false },
+        { id: 4, name: "Consola de Jogos", ip: "192.168.1.80", mac: "3C:4D:5E:6F:7A:8B", online: true }
+    ];
+
+    function renderDevices() {
+        const grid = document.getElementById('devices-grid');
+        grid.innerHTML = '';
+
+        devices.forEach(device => {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const statusClass = device.online ? 'status-online' : 'status-offline';
+            const statusText = device.online ? 'Ligado' : 'Desligado';
+            const buttonClass = device.online ? 'btn-on' : 'btn-off';
+            const buttonText = device.online ? 'Desligar' : 'Ligar';
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="device-info">
+                        <h3>${device.name}</h3>
+                        <p>IP: ${device.ip}</p>
+                        <p>MAC: ${device.mac}</p>
+                    </div>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-toggle ${buttonClass}" onclick="toggleDevice(${device.id})">
+                        ${buttonText}
+                    </button>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        document.getElementById('network-info').innerText = `Total: ${devices.length} dispositivos encontrados na sub-rede 192.168.1.X`;
+    }
+
+    // Função que simula ligar/desligar (num cenário real, faria um fetch() para uma API)
+    function toggleDevice(id) {
+        const device = devices.find(d => d.id === id);
+        if (device) {
+            device.online = !device.online;
+            
+            // Aqui entraria a integração real. Exemplo:
+            // fetch(`/api/dispositivo/${device.ip}/toggle`, { method: 'POST' })
+
+            renderDevices();
+        }
+    }
+
+    // Simula uma nova procura de dispositivos na rede
+    function scanNetwork() {
+        const info = document.getElementById('network-info');
+        info.innerText = "A procurar novos dispositivos na rede...";
+        
+        setTimeout(() => {
+            renderDevices();
+            alert("Varredura de rede concluída!");
+        }, 1500);
+    }
+
+    // Inicializar a app ao carregar a página
+    window.onload = renderDevices;
+</script>
+
+</body>
+</html>
